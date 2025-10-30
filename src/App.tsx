@@ -1,52 +1,79 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
+import api from "./api";
 
+interface Customer {
+  id: string;
+  name: string;
+}
 interface Loan {
   id: string;
-  customerName: string;
+  customer: Customer;
   amount: number;
   issueDate: string;
+  interestRate: number;
+  interest: number;
   status: "PAID" | "UNPAID";
 }
+
 
 const DAILY_RATE = 0.7143 / 100;
 
 function App() {
-  const [loans, setLoans] = useState<Loan[]>(() => {
-    const saved = localStorage.getItem("loans");
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [loans, setLoans] = useState<Loan[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [amount, setAmount] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [filterStatus, setFilterStatus] = useState<"ALL" | "PAID" | "UNPAID">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // Fetch loans from backend
+  const fetchLoans = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/loans');
+      setLoans(data);
+    } catch (error) {
+      console.error("Error fetching loans:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Run on amount
   useEffect(() => {
-    localStorage.setItem("loans", JSON.stringify(loans));
-  }, [loans]);
+    fetchLoans();
+  }, []);
 
-  const handleAddLoan = () => {
-    if (!customerName || !amount || !issueDate) return alert("Fill all fields");
-    const newLoan: Loan = {
-      id: crypto.randomUUID(),
-      customerName,
-      amount: parseFloat(amount),
-      issueDate,
-      status: "UNPAID",
-    };
-    setLoans((prev) => [...prev, newLoan]);
-    setCustomerName("");
-    setAmount("");
-    setIssueDate("");
-  };
+  // Add loan to backend
+  const handleAddLoan = async () => {
+    if (!customerName || !amount || !issueDate) return alert("Please fill all fields");
 
-  const markAsPaid = (id: string) => {
-    setLoans((prev) =>
-      prev.map((loan) =>
-        loan.id === id ? { ...loan, status: "PAID" } : loan
-      )
-    );
+    try {
+      const payload = {
+        customerName,
+        amount: parseFloat(amount),
+        issueDate,
+      };
+      await api.post('/loans', payload);
+      setCustomerName("");
+      setAmount("");
+      setIssueDate("");
+      fetchLoans(); // refresh list
+    } catch (error) {
+      console.error("Error adding loan:", error);
+      alert('Failed to add loan.');
+    }
+  }
+
+  const markAsPaid = async (id: string) => {
+    try {
+      await api.patch(`/loans/${id}/mark-paid`);
+      fetchLoans(); // refresh list
+    } catch (error) {
+      console.error("Error marking loan as paid:", error);
+      alert('Failed to mark loan as paid.');
+    }
   };
 
   const calcDays = (date: string) => {
@@ -57,7 +84,8 @@ function App() {
   const calcInterest = (amount: number, days: number) => amount * DAILY_RATE * days;
 
   const filteredLoans = loans.filter((loan) => {
-    const matchesName = loan.customerName
+    console.log('............ ', loan);
+    const matchesName = loan.customer.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -65,7 +93,7 @@ function App() {
     return matchesName && matchesStatus;
   });
 
-  const customers = Array.from(new Set(loans.map((l) => l.customerName)));
+  const customers = Array.from(new Set(loans.map((l) => l.customer.name)));
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -158,7 +186,7 @@ function App() {
                   const total = loan.amount + interest;
                   return (
                     <tr key={loan.id} className="hover:bg-gray-50">
-                      <td className="p-2 border">{loan.customerName}</td>
+                      <td className="p-2 border">{loan.customer.name}</td>
                       <td className="p-2 border">{loan.amount.toFixed(2)}</td>
                       <td className="p-2 border text-center">{days}</td>
                       <td className="p-2 border">{interest.toFixed(2)}</td>

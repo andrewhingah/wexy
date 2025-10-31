@@ -84,7 +84,6 @@ function App() {
   const calcInterest = (amount: number, days: number) => amount * DAILY_RATE * days;
 
   const filteredLoans = loans.filter((loan) => {
-    console.log('............ ', loan);
     const matchesName = loan.customer.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());

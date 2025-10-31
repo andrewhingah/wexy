@@ -141,7 +141,7 @@ function App() {
         <div className="flex justify-between items-center mb-4">
           <input
             type="text"
-            placeholder="Search by customer"
+            placeholder="Search by customer name"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border rounded-lg p-2 w-1/2"
@@ -186,10 +186,10 @@ function App() {
                   return (
                     <tr key={loan.id} className="hover:bg-gray-50">
                       <td className="p-2 border">{loan.customer.name}</td>
-                      <td className="p-2 border">{loan.amount.toFixed(2)}</td>
+                      <td className="p-2 border">{loan.amount.toLocaleString()}</td>
                       <td className="p-2 border text-center">{days}</td>
-                      <td className="p-2 border">{interest.toFixed(2)}</td>
-                      <td className="p-2 border">{total.toFixed(2)}</td>
+                      <td className="p-2 border">{interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-2 border">{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                       <td
                         className={`p-2 border font-semibold ${
                           loan.status === "PAID"

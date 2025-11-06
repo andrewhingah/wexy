@@ -61,6 +61,19 @@ export default function Loans() {
     return matchesName && matchesStatus;
   });
 
+  // Calculate totals
+  const totalAmount = filteredLoans.reduce((sum, loan) => sum + loan.amount, 0);
+
+  const totalRepayment = filteredLoans.reduce((sum, loan) => {
+    const days = Math.floor(
+      (new Date().getTime() - new Date(loan.issueDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    const interest = loan.amount * DAILY_RATE * days;
+    return sum + loan.amount + interest;
+  }, 0);
+
+
   const customers = Array.from(new Set(loans.map((l) => l.customer.firstName)));
 
   return (
@@ -87,6 +100,28 @@ export default function Loans() {
           <option value="UNPAID">Unpaid</option>
           <option value="PAID">Paid</option>
         </select>
+      </div>
+
+      {/* Totals summary */}
+      <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-4 border">
+        <div>
+          <p className="text-gray-600 font-medium">Total Amount Lent</p>
+          <p className="text-2xl font-semibold text-blue-700">
+            {totalAmount.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+        </div>
+        <div>
+          <p className="text-gray-600 font-medium">Total Expected Repayment</p>
+          <p className="text-2xl font-semibold text-green-700">
+            {totalRepayment.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+        </div>
       </div>
 
       <LoanTable

@@ -1,0 +1,105 @@
+import React, { useState, useEffect } from "react";
+import api from "../api";
+import LoanForm from "../components/LoanForm";
+import LoanTable from "../components/LoanTable";
+
+interface Customer {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+interface Loan {
+  id: string;
+  customer: Customer;
+  amount: number;
+  issueDate: string;
+  interestRate: number;
+  interest: number;
+  status: "PAID" | "UNPAID";
+}
+
+const DAILY_RATE = 0.7143 / 100;
+
+export default function Loans() {
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<"ALL" | "PAID" | "UNPAID">("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchLoans = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get("/loans");
+      setLoans(data);
+    } catch (error) {
+      console.error("Error fetching loans:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLoans();
+  }, []);
+
+  const markAsPaid = async (id: string) => {
+    try {
+      await api.patch(`/loans/${id}/mark-paid`);
+      fetchLoans();
+    } catch (error) {
+      console.error("Error marking loan as paid:", error);
+      alert("Failed to mark loan as paid.");
+    }
+  };
+
+  const filteredLoans = loans.filter((loan) => {
+    const matchesName = loan.customer.firstName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === "ALL" ? true : loan.status === filterStatus;
+    return matchesName && matchesStatus;
+  });
+
+  const customers = Array.from(new Set(loans.map((l) => l.customer.firstName)));
+
+  return (
+    <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow p-6">
+      <h1 className="text-2xl font-semibold text-center mb-6">Shylock Loan Tracker</h1>
+
+      <LoanForm customers={customers} refreshLoans={fetchLoans} />
+
+      {/* Filters */}
+      <div className="flex justify-between items-center mb-4">
+        <input
+          type="text"
+          placeholder="Search by customer name"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border rounded-lg p-2 w-1/2"
+        />
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value as any)}
+          className="border rounded-lg p-2"
+        >
+          <option value="ALL">All</option>
+          <option value="UNPAID">Unpaid</option>
+          <option value="PAID">Paid</option>
+        </select>
+      </div>
+
+      <LoanTable
+        loans={filteredLoans.map(loan => ({
+          ...loan,
+          customer: {
+            id: loan.customer.id,
+            name: `${loan.customer.firstName} ${loan.customer.lastName}`,
+          },
+        }))}
+        markAsPaid={markAsPaid}
+        dailyRate={DAILY_RATE}
+      />
+    </div>
+  );
+}

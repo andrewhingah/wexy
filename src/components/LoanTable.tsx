@@ -25,6 +25,15 @@ export default function LoanTable({ loans, markAsPaid, dailyRate }: Props) {
   const calcInterest = (amount: number, days: number) =>
     amount * dailyRate * days;
 
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).replace(/ /g, '-');
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left border">
@@ -32,6 +41,7 @@ export default function LoanTable({ loans, markAsPaid, dailyRate }: Props) {
           <tr>
             <th className="p-2 border">Customer</th>
             <th className="p-2 border">Amount</th>
+            <th className="p-2 border">Date Issued</th>
             <th className="p-2 border">Days</th>
             <th className="p-2 border">Interest</th>
             <th className="p-2 border">Total</th>
@@ -57,6 +67,7 @@ export default function LoanTable({ loans, markAsPaid, dailyRate }: Props) {
                   <td className="p-2 border">
                     {loan.amount.toLocaleString()}
                   </td>
+                  <td className="p-2 border text-center">{formatDate(loan.issueDate)}</td>
                   <td className="p-2 border text-center">{days}</td>
                   <td className="p-2 border">
                     {interest.toLocaleString(undefined, {

@@ -78,65 +78,70 @@ export default function Loans() {
 
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow p-6">
-      <h1 className="text-2xl font-semibold text-center mb-6">Shylock Loan Tracker</h1>
+      <h1 className="text-2xl font-semibold text-center mb-6">Loan Tracker</h1>
 
-      <div className="sticky top-0 z-40 bg-white border-b">
-        <LoanForm customers={customers} refreshLoans={fetchLoans} />
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Loading loans...</div>
+      ) : (
+        <>
+          <div className="sticky top-0 z-40 bg-white border-b">
+            <LoanForm customers={customers} refreshLoans={fetchLoans} />
 
-        {/* Filters */}
-        <div className="flex justify-between items-center mb-4">
-          <input
-            type="text"
-            placeholder="Search by customer name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border rounded-lg p-2 w-1/2"
+            {/* Filters */}
+            <div className="flex justify-between items-center mb-4">
+              <input
+                type="text"
+                placeholder="Search by customer name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border rounded-lg p-2 w-1/2"
+              />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as any)}
+                className="border rounded-lg p-2"
+              >
+                <option value="ALL">All</option>
+                <option value="UNPAID">Unpaid</option>
+                <option value="PAID">Paid</option>
+              </select>
+            </div>
+
+            {/* Totals summary */}
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-4 border">
+              <div>
+                <p className="text-gray-600 font-medium">Total Amount Lent</p>
+                <p className="text-2xl font-semibold text-blue-700">
+                  {totalAmount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600 font-medium">Total Expected Repayment</p>
+                <p className="text-2xl font-semibold text-green-700">
+                  {totalRepayment.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+          <LoanTable
+            loans={filteredLoans.map(loan => ({
+              ...loan,
+              customer: {
+                id: loan.customer.id,
+                name: `${loan.customer.firstName} ${loan.customer.lastName}`,
+              },
+            }))}
+            markAsPaid={markAsPaid}
+            dailyRate={DAILY_RATE}
           />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="border rounded-lg p-2"
-          >
-            <option value="ALL">All</option>
-            <option value="UNPAID">Unpaid</option>
-            <option value="PAID">Paid</option>
-          </select>
-        </div>
-
-        {/* Totals summary */}
-        <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-4 border">
-          <div>
-            <p className="text-gray-600 font-medium">Total Amount Lent</p>
-            <p className="text-2xl font-semibold text-blue-700">
-              {totalAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600 font-medium">Total Expected Repayment</p>
-            <p className="text-2xl font-semibold text-green-700">
-              {totalRepayment.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <LoanTable
-        loans={filteredLoans.map(loan => ({
-          ...loan,
-          customer: {
-            id: loan.customer.id,
-            name: `${loan.customer.firstName} ${loan.customer.lastName}`,
-          },
-        }))}
-        markAsPaid={markAsPaid}
-        dailyRate={DAILY_RATE}
-      />
+        </>
+      )}
     </div>
   );
 }

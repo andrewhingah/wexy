@@ -37,7 +37,7 @@ export default function LoanTable({ loans, markAsPaid, dailyRate }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left border">
-        <thead className="bg-gray-200">
+        <thead className="sticky top-0 z-10 bg-gray-200">
           <tr>
             <th className="p-2 border">Customer</th>
             <th className="p-2 border">Amount</th>

@@ -50,7 +50,7 @@ const AddCustomer: React.FC = () => {
     formData.append("proofOfIncome", proofOfIncome);
 
     try {
-      const res = await fetch(`${process.env.SERVER_URL}/customers`, {
+      const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/customers`, {
         method: "POST",
         body: formData,
       });

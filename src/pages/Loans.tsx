@@ -15,6 +15,8 @@ interface Loan {
   issueDate: string;
   interestRate: number;
   interest: number;
+  interestCapped: number;
+  interestOverflow: number;
   status: "PAID" | "UNPAID";
 }
 
@@ -69,7 +71,7 @@ export default function Loans() {
       (new Date().getTime() - new Date(loan.issueDate).getTime()) /
         (1000 * 60 * 60 * 24)
     );
-    const interest = loan.amount * DAILY_RATE * days;
+    const interest = loan.interestCapped;
     return sum + loan.amount + interest;
   }, 0);
 
@@ -113,6 +115,15 @@ export default function Loans() {
                 <p className="text-gray-600 font-medium">Total Amount Lent</p>
                 <p className="text-2xl font-semibold text-blue-700">
                   {totalAmount.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600 font-medium">Total Overflow Interest</p>
+                <p className="text-2xl font-semibold text-yellow-700">
+                  {filteredLoans.reduce((sum, loan) => sum + loan.interestOverflow, 0).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
